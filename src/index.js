@@ -4,9 +4,6 @@ let currentDog
   function init(){
     Adapter.f()
     delegateEditEvent()
-
-    // btn = document.querySelector('button')
-    // btn.addEventListener('click', fillForm)
   }
 
 
