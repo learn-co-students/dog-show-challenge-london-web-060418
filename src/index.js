@@ -41,9 +41,9 @@ document.addEventListener('DOMContentLoaded', function(){
   function getDogFromForm(e){
     e.preventDefault();
     let editedDog = {
-      name: document.getElementById('name').value,
-      breed: document.getElementById('breed').value,
-      gender: document.getElementById('gender').value
+      name: form.name.value,
+      breed: form.breed.value,
+      gender: form.gender.value
     }
     patchDog(editedDog)
   }
