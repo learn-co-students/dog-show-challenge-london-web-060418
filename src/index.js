@@ -1,3 +1,1 @@
-document.addEventListener('DOMContentLoded', () => {
-  
-})
+document.addEventListener('DOMContentLoaded', DogController.init)
