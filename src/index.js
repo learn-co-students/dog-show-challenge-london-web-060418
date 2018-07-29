@@ -1,119 +1,89 @@
-document.addEventListener('DOMContentLoaded', () => {
-  fetchAllDogs()
-  createEventListener()
-})
+document.addEventListener('DOMContentLoaded', function(){
 
-function fetchAllDogs() {
-    fetch('http://localhost:3000/dogs')
-    .then((response) => response.json())
-    .then((dogData) => {
-        let dogArray = dogData.map((dog) => new Dog(dog.id, dog.name, dog.breed, dog.gender))
-        renderDogs(dogArray)
+  fetch("http://localhost:3000/dogs")
+         .then(res => res.json())
+         .then(json => renderDogs(json))
+
+  let dogsTable = document.getElementById("table-body")
+  let form = document.getElementById("dog-form")
+  let currentDogId;
+
+  function renderDogs(json){
+    json.forEach(function(dog){
+      let dogTr = document.createElement("tr")
+      dogTr.innerHTML =  `<td>${dog.name}</td>
+       <td>${dog.breed}</td>
+       <td>${dog.gender}</td>
+       <td><button id=${dog.id}>Edit</button></td>`
+       //gets the id from the json file nothing is created
+      dogsTable.append(dogTr)
+      //console.log(dog.id)
     })
-}
+  }
 
-function getTable() {
-    return document.querySelector('#table-body')
-}
+  let table = document.querySelector("table")
 
-function renderDogs(dogArray) {
-    let table = getTable()
-    dogArray.forEach((dog) => {
-        table.innerHTML += dog.render()
-    })
-}
+  table.addEventListener("click", function(e){
+    if (e.target.innerText === "Edit"){
+      row = e.target.parentNode.parentNode
+      //where the button was clicked inside which table data inside which table row
+      //console.log(e.path[2])
 
-function editDog(id, name, breed, sex) {
-    // function start (getDogInput? (make sure to look up ES6 destructuring (extra points!!)))
-    const nameInput = document.getElementById('name-input')
-    const breedInput = document.getElementById('breed-input')
-    const sexInput = document.getElementById('sex-input')
-    // function end
-    nameInput.value = name
-    breedInput.value = breed
-    sexInput.value = sex
-    editEventListener(id)
-}
-
-function createEventListener() {
-    document.getElementById('dog-form').addEventListener('submit', createSubmit)
-}
-
-function editEventListener(id) {
-    document.getElementById('dog-form').removeEventListener('submit', createSubmit)
-    document.getElementById('dog-form').addEventListener('submit', editSubmit.bind(id))
-}
-
-function addDog(dog) {
-    let table = getTable()
-    table.innerHTML += dog.render()
-}
-
-function updateDog(dog) {
-    updatedDog = document.createElement("tr")
-    updatedDog.id = dog.id
-    // dog.id = updateDog.id
-
-    updatedDog.innerHTML=`
-    <td>${dog.name}</td>
-    <td>${dog.breed}</td>
-    <td>${dog.sex}</td>
-    <td><button onclick="editDog(${dog.id}, '${dog.name}', '${dog.breed}', '${dog.sex}');">Edit</button></td>`
-
-    document.getElementById('table-body').replaceChild(updatedDog, document.getElementById(updatedDog.id))
-}
-
-function createSubmit(e) {
-    const nameInput = document.getElementById('name-input')
-    const breedInput = document.getElementById('breed-input')
-    const sexInput = document.getElementById('sex-input')
-    e.preventDefault()
-    let data = {
-        name: nameInput.value,
-        breed: breedInput.value,
-        gender: sexInput.value
+      //declared in global and then assigned here
+      currentDogId = e.target.id    //dog's id !!!!
+      console.log(currentDogId)
+      //console.log(row)
+      editDog(row)
     }
-    fetch('http://localhost:3000/dogs', {
-            method: "POST",
-            headers: {
-                "Content-type": "application/json"
-            },
-            body: JSON.stringify(data)
-        })
-        .then((response) => response.json())
-        .then((dogData) => {
-            addDog(new Dog(dogData.id, dogData.name, dogData.breed, dogData.gender))
-            nameInput.value = ""
-            breedInput.value = ""
-            sexInput.value = ""
-        })
-}
+  })
 
-function editSubmit(e) {
-    const form = document.getElementById('dog-form')
-    const nameInput = document.getElementById('name-input')
-    const breedInput = document.getElementById('breed-input')
-    const sexInput = document.getElementById('sex-input')
-    e.preventDefault()
-    data = {
-        name: nameInput.value,
-        breed: breedInput.value,
-        gender: sexInput.value
+  function editDog(row) {
+    //form.name is the empty field
+    //we assign the value from the previous function
+    //get the data from the table and put it int the form fields in the correct order
+    //name , breed and Sex
+    //take from table put into Form
+
+    form.name.value = row.querySelectorAll('td')[0].innerText
+    form.breed.value = row.querySelectorAll('td')[1].innerText
+    form.gender.value = row.querySelectorAll('td')[2].innerText
+  }
+
+  //
+  form.addEventListener("submit", getDogFromForm)
+
+  //now we have the data we just edited and the function prevents the Default
+  function getDogFromForm(e){
+    e.preventDefault();
+    let editedDog = {
+      // name: document.getElementById('name').value,
+      //saved it in the editedDog variable and called the patch function with this as a parameter
+
+      //we make an object with the new values in the form
+      name: form.name.value,
+      breed: form.breed.value,
+      gender: form.gender.value
     }
-    fetch(`http://localhost:3000/dogs/${this}`, {
-      method: "PATCH",
-      headers: {
-          "Content-type": "application/json"
-      },
-      body: JSON.stringify(data)
-    })
-    .then((response) => response.json())
-    .then((dogData) => {
-      updateDog(new Dog(dogData.id, dogData.name, dogData.breed, dogData.gender))
-      nameInput.value = ""
-      breedInput.value = ""
-      sexInput.value = ""
-      document.getElementById('form-container').replaceChild(form.cloneNode(true),form)
-      document.getElementById('dog-form').addEventListener('submit', createSubmit)
-    })
-}
+    patchDog(editedDog)
+  }
+
+  function renderDog(dog){
+    let dogIsComingTr = document.getElementById(dog.id).parentNode.parentNode
+    console.log(dogIsComingTr)
+    dogIsComingTr.querySelectorAll('td')[0].innerText = dog.name
+    dogIsComingTr.querySelectorAll('td')[1].innerText = dog.breed
+    dogIsComingTr.querySelectorAll('td')[2].innerText = dog.gender
+  }
+
+  function patchDog(dog){
+    //console.log(currentDogId)
+    fetch(`http://localhost:3000/dogs/${currentDogId}`, {
+       method: 'PATCH',
+       headers: {'Content-Type': 'application/json'},
+       body: JSON.stringify(dog),
+     })
+     .then(res => res.json())
+     //.then(dog => console.log(dog.id));
+     .then(dog => renderDog(dog));
+   }
+});
